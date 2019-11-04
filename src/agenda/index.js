@@ -82,7 +82,18 @@ export default class AgendaView extends Component {
     /** Set this true while waiting for new data from a refresh. */
     refreshing: PropTypes.bool,
     /** Display loading indicador. Default = false */
-    displayLoadingIndicator: PropTypes.bool
+    displayLoadingIndicator: PropTypes.bool,
+
+    onScrollReservations: PropTypes.func,
+    renderTopReservationsOverlay: PropTypes.func,
+
+    renderItemHeader: PropTypes.func,
+    shouldRenderItemHeader: PropTypes.func,
+
+    onViewableItemsChanged: PropTypes.func,
+    viewAreaCoveragePercentThreshold: PropTypes.number,
+
+    flatListExtraData: PropTypes.object,
   };
 
   constructor(props) {
@@ -297,6 +308,12 @@ export default class AgendaView extends Component {
         onScroll={() => {}}
         ref={(c) => this.list = c}
         theme={this.props.theme}
+        renderTopReservationsOverlay={this.props.renderTopReservationsOverlay}
+        renderItemHeader={this.props.renderItemHeader}
+        shouldRenderItemHeader={this.props.shouldRenderItemHeader}
+        onViewableItemsChanged={this.props.onViewableItemsChanged}
+        viewAreaCoveragePercentThreshold={this.props.viewAreaCoveragePercentThreshold}
+        flatListExtraData={this.props.flatListExtraData}
       />
     );
   }

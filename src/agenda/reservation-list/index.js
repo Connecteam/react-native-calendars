@@ -7,6 +7,7 @@ import {
 import Reservation from './reservation';
 import PropTypes from 'prop-types';
 import XDate from 'xdate';
+import ViewOverflow from 'react-native-view-overflow';
 
 import dateutils from '../../dateutils';
 import styleConstructor from './style';
@@ -37,6 +38,16 @@ class ReactComp extends Component {
     refreshControl: PropTypes.element,
     refreshing: PropTypes.bool,
     onRefresh: PropTypes.func,
+
+    renderTopReservationsOverlay: PropTypes.func,
+
+    renderItemHeader: PropTypes.func,
+    shouldRenderItemHeader: PropTypes.func,
+
+    onViewableItemsChanged: PropTypes.func,
+    viewAreaCoveragePercentThreshold: PropTypes.number,
+
+    flatListExtraData: PropTypes.object,
   };
 
   constructor(props) {
@@ -48,6 +59,10 @@ class ReactComp extends Component {
     this.heights=[];
     this.selectedDay = this.props.selectedDay;
     this.scrollOver = true;
+
+    this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
+    this.viewabilityConfig = {viewAreaCoveragePercentThreshold:
+        this.props.viewAreaCoveragePercentThreshold ? this.props.viewAreaCoveragePercentThreshold : 50};
   }
 
   componentWillMount() {
@@ -121,6 +136,9 @@ class ReactComp extends Component {
           renderEmptyDate={this.props.renderEmptyDate}
           theme={this.props.theme}
           rowHasChanged={this.props.rowHasChanged}
+          renderItemHeader={this.props.renderItemHeader}
+          shouldRenderItemHeader={this.props.shouldRenderItemHeader}
+          extraData={this.props.flatListExtraData}
         />
       </View>
     );
@@ -200,12 +218,16 @@ class ReactComp extends Component {
         data={this.state.reservations}
         onScroll={this.onScroll.bind(this)}
         showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={this.onViewableItemsChanged}
+        viewabilityConfig={this.viewabilityConfig}
         scrollEventThrottle={200}
         onMoveShouldSetResponderCapture={() => {this.onListTouch(); return false;}}
         keyExtractor={(item, index) => String(index)}
         refreshControl={this.props.refreshControl}
         refreshing={this.props.refreshing || false}
         onRefresh={this.props.onRefresh}
+        extraData={this.props.flatListExtraData ? this.props.flatListExtraData : {}}
+        CellRendererComponent={ViewOverflow}
       />
     );
   }

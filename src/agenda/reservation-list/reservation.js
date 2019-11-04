@@ -55,12 +55,29 @@ class ReservationListItem extends Component {
   render() {
     const {reservation, date} = this.props.item;
     let content;
+    const firstItem = !!date;
+
     if (reservation) {
-      const firstItem = date ? true : false;
       content = this.props.renderItem(reservation, firstItem);
     } else {
       content = this.props.renderEmptyDate(date);
     }
+
+    if (firstItem && this.props.shouldRenderItemHeader && this.props.renderItemHeader &&
+      this.props.shouldRenderItemHeader(reservation, firstItem, date)) {
+      return (
+        <View style={{flexDirection: 'column'}}>
+          {this.props.renderItemHeader(reservation, date)}
+          <View style={this.styles.container}>
+            {this.renderDate(date, reservation)}
+            <View style={{flex:1}}>
+              {content}
+            </View>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={this.styles.container}>
         {this.renderDate(date, reservation)}
