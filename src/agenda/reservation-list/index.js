@@ -200,6 +200,12 @@ class ReactComp extends Component {
     return {reservations, scrollPosition};
   }
 
+  onViewableItemsChanged(info) {
+    if (this.props.onViewableItemsChanged) {
+      this.props.onViewableItemsChanged(info);
+    }
+  }
+
   render() {
     if (!this.props.reservations || !this.props.reservations[this.props.selectedDay.toString('yyyy-MM-dd')]) {
       if (this.props.renderEmptyData) {
