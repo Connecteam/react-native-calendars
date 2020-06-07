@@ -29,7 +29,8 @@ class AgendaList extends Component {
   }
 
   static defaultProps = {
-    dayFormat: 'dddd, MMM d'
+    dayFormat: 'dddd, MMM d',
+    stickySectionHeadersEnabled: true
   }
 
   constructor(props) {
@@ -56,6 +57,16 @@ class AgendaList extends Component {
       }
     });
     return i;
+  }
+
+  componentDidMount() {
+    const {date} = this.props.context;
+    if (date !== this._topSection) {
+      setTimeout(() => {
+        const sectionIndex = this.getSectionIndex(date);
+        this.scrollToSection(sectionIndex);
+      }, 500);
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -120,17 +131,19 @@ class AgendaList extends Component {
   }
 
   renderSectionHeader = ({section: {title}}) => {
-    const today = XDate().toString(this.props.dayFormat).toUpperCase();
-    const date = XDate(title).toString(this.props.dayFormat).toUpperCase();
+    const today = XDate().toString(this.props.dayFormat);
+    const date = XDate(title).toString(this.props.dayFormat);
     const todayString = XDate.locales[XDate.defaultLocale].today || commons.todayString;
-    const sectionTitle = date === today ? `${todayString.toUpperCase()}, ${date}` : date;
-    
+    const sectionTitle = date === today ? `${todayString}, ${date}` : date;
+
     return (
       <Text allowFontScaling={false} style={[this.style.sectionText, this.props.sectionStyle]} onLayout={this.onHeaderLayout}>{sectionTitle}</Text>
     );
   }
 
-  keyExtractor = (item, index) => String(index);
+  keyExtractor = (item, index) => {
+    return _.isFunction(this.props.keyExtractor) ? this.props.keyExtractor(item, index) : String(index);
+  }
 
   render() {
     return (
@@ -139,14 +152,13 @@ class AgendaList extends Component {
         ref={this.list}
         keyExtractor={this.keyExtractor}
         showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled
         onViewableItemsChanged={this.onViewableItemsChanged}
         viewabilityConfig={this.viewabilityConfig}
         renderSectionHeader={this.renderSectionHeader}
         onScroll={this.onScroll}
         onMomentumScrollBegin={this.onMomentumScrollBegin}
         onMomentumScrollEnd={this.onMomentumScrollEnd}
-        // onScrollToIndexFailed={(info) => { console.warn('onScrollToIndexFailed info: ', info); }}
+        onScrollToIndexFailed={(info) => { console.warn('onScrollToIndexFailed info: ', info); }}
         // getItemLayout={this.getItemLayout} // onViewableItemsChanged is not updated when list scrolls!!!
       />
     );

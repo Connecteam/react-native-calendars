@@ -1,37 +1,34 @@
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {
-  TouchableWithoutFeedback,
-  Text,
-  View} from 'react-native';
+import {TouchableWithoutFeedback, Text, View} from 'react-native';
 import {shouldUpdate} from '../../../component-updater';
-
+import Dot from '../../dot';
 import * as defaultStyle from '../../../style';
 import styleConstructor from './style';
 
+
 class Day extends Component {
   static displayName = 'IGNORE';
-  
+
   static propTypes = {
     // TODO: selected + disabled props should be removed
     state: PropTypes.oneOf(['selected', 'disabled', 'today', '']),
-
     // Specify theme properties to override specific styles for calendar parts. Default = {}
     theme: PropTypes.object,
     marking: PropTypes.any,
-
     onPress: PropTypes.func,
     onLongPress: PropTypes.func,
     date: PropTypes.object,
-
-    markingExists: PropTypes.bool,
+    markingExists: PropTypes.bool
   };
 
   constructor(props) {
     super(props);
+
     this.theme = {...defaultStyle, ...(props.theme || {})};
     this.style = styleConstructor(props.theme);
+
     this.markingStyle = this.getDrawingStyle(props.marking || []);
     this.onDayPress = this.onDayPress.bind(this);
     this.onDayLongPress = this.onDayLongPress.bind(this);
@@ -57,7 +54,7 @@ class Day extends Component {
   }
 
   getDrawingStyle(marking) {
-    const defaultStyle = {textStyle: {}};
+    const defaultStyle = {textStyle: {}, containerStyle: {}};
     if (!marking) {
       return defaultStyle;
     }
@@ -107,6 +104,12 @@ class Day extends Component {
       }
       if (next.textColor) {
         prev.textStyle.color = next.textColor;
+      }
+      if (marking.customTextStyle) {
+        defaultStyle.textStyle = marking.customTextStyle;
+      }
+      if (marking.customContainerStyle) {
+        defaultStyle.containerStyle = marking.customContainerStyle;
       }
       return prev;
     }, defaultStyle);
@@ -192,15 +195,27 @@ class Day extends Component {
       );
     }
 
+    const {marking: {marked, dotColor}, theme} = this.props;
+
     return (
       <TouchableWithoutFeedback
         testID={this.props.testID}
         onPress={this.onDayPress}
-        onLongPress={this.onDayLongPress}>
+        onLongPress={this.onDayLongPress}
+        disabled={this.props.marking.disableTouchEvent}
+        accessible
+        accessibilityRole={this.props.marking.disableTouchEvent ? undefined : 'button'}
+        accessibilityLabel={this.props.accessibilityLabel}
+      >
         <View style={this.style.wrapper}>
           {fillers}
           <View style={containerStyle}>
             <Text allowFontScaling={false} style={textStyle}>{String(this.props.children)}</Text>
+            <Dot
+              theme={theme}
+              isMarked={marked}
+              dotColor={dotColor}
+            />
           </View>
         </View>
       </TouchableWithoutFeedback>

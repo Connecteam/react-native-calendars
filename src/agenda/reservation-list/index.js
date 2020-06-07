@@ -1,9 +1,5 @@
 import React, {Component} from 'react';
-import {
-  FlatList,
-  ActivityIndicator,
-  View
-} from 'react-native';
+import {FlatList, ActivityIndicator, View} from 'react-native';
 import Reservation from './reservation';
 import PropTypes from 'prop-types';
 import XDate from 'xdate';
@@ -12,9 +8,10 @@ import ViewOverflow from 'react-native-view-overflow';
 import dateutils from '../../dateutils';
 import styleConstructor from './style';
 
-class ReactComp extends Component {
+
+class ReservationList extends Component {
   static displayName = 'IGNORE';
-  
+
   static propTypes = {
     // specify your item comparison function for increased performance
     rowHasChanged: PropTypes.func,
@@ -32,7 +29,6 @@ class ReactComp extends Component {
     // the value of date key kas to be an empty array []. If there exists no value for date key it is
     // considered that the date in question is not yet loaded
     reservations: PropTypes.object,
-
     selectedDay: PropTypes.instanceOf(XDate),
     topDay: PropTypes.instanceOf(XDate),
     refreshControl: PropTypes.element,
@@ -48,14 +44,22 @@ class ReactComp extends Component {
     viewAreaCoveragePercentThreshold: PropTypes.number,
 
     flatListExtraData: PropTypes.object,
+
+    onScrollBeginDrag: PropTypes.func,
+    onScrollEndDrag: PropTypes.func,
+    onMomentumScrollBegin: PropTypes.func,
+    onMomentumScrollEnd: PropTypes.func
   };
 
   constructor(props) {
     super(props);
+
     this.styles = styleConstructor(props.theme);
+
     this.state = {
       reservations: []
     };
+
     this.heights=[];
     this.selectedDay = this.props.selectedDay;
     this.scrollOver = true;
@@ -65,7 +69,7 @@ class ReactComp extends Component {
         this.props.viewAreaCoveragePercentThreshold ? this.props.viewAreaCoveragePercentThreshold : 50};
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.updateDataSource(this.getReservations(this.props).reservations);
   }
 
@@ -89,7 +93,7 @@ class ReactComp extends Component {
     this.updateDataSource(reservations.reservations);
   }
 
-  componentWillReceiveProps(props) {
+  UNSAFE_componentWillReceiveProps(props) {
     if (!dateutils.sameDate(props.topDay, this.props.topDay)) {
       this.setState({
         reservations: []
@@ -207,12 +211,13 @@ class ReactComp extends Component {
   }
 
   render() {
-    if (!this.props.reservations || !this.props.reservations[this.props.selectedDay.toString('yyyy-MM-dd')]) {
+    const {reservations} = this.props;
+    if (!reservations || !reservations[this.props.selectedDay.toString('yyyy-MM-dd')]) {
       if (this.props.renderEmptyData) {
         return this.props.renderEmptyData();
       }
       return (
-        <ActivityIndicator style={{marginTop: 80}} color={this.props.theme && this.props.theme.indicatorColor} />
+        <ActivityIndicator style={{marginTop: 80}} color={this.props.theme && this.props.theme.indicatorColor}/>
       );
     }
     return (
@@ -234,9 +239,13 @@ class ReactComp extends Component {
         onRefresh={this.props.onRefresh}
         extraData={this.props.flatListExtraData ? this.props.flatListExtraData : {}}
         CellRendererComponent={ViewOverflow}
+        onScrollBeginDrag={this.props.onScrollBeginDrag}
+        onScrollEndDrag={this.props.onScrollEndDrag}
+        onMomentumScrollBegin={this.props.onMomentumScrollBegin}
+        onMomentumScrollEnd={this.props.onMomentumScrollEnd}
       />
     );
   }
 }
 
-export default ReactComp;
+export default ReservationList;
