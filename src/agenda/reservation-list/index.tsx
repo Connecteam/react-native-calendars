@@ -46,6 +46,16 @@ export type ReservationListProps = ReservationProps & {
   onRefresh?: () => void;
   /** Extractor for underlying FlatList. Ensure that this is unique per item, or else scrolling may have duplicated and / or missing items.  */
   reservationsKeyExtractor?: (item: DayAgenda, index: number) => string;
+
+  renderTopReservationsOverlay?: (data: XDate) => JSX.Element;
+
+  renderItemHeader?: (item: any, date: XDate) => JSX.Element;
+  shouldRenderItemHeader?: (item: any, isFirstItem: boolean, date: XDate) => boolean;
+
+  onViewableItemsChanged?: (info: any) => void;
+  viewAreaCoveragePercentThreshold?: number;
+
+  flatListExtraData?: any;
 };
 
 interface DayAgenda {
@@ -66,7 +76,7 @@ class ReservationList extends Component<ReservationListProps, State> {
     selectedDay: PropTypes.instanceOf(XDate),
     topDay: PropTypes.instanceOf(XDate),
     onDayChange: PropTypes.func,
-    
+
     showOnlySelectedDayItems: PropTypes.bool,
     renderEmptyData: PropTypes.func,
 
@@ -78,9 +88,19 @@ class ReservationList extends Component<ReservationListProps, State> {
     refreshControl: PropTypes.element,
     refreshing: PropTypes.bool,
     onRefresh: PropTypes.func,
-    reservationsKeyExtractor: PropTypes.func
+    reservationsKeyExtractor: PropTypes.func,
+
+    renderTopReservationsOverlay: PropTypes.func,
+
+    renderItemHeader: PropTypes.func,
+    shouldRenderItemHeader: PropTypes.func,
+
+    onViewableItemsChanged: PropTypes.func,
+    viewAreaCoveragePercentThreshold: PropTypes.number,
+
+    flatListExtraData: PropTypes.object
   };
-  
+
   static defaultProps = {
     refreshing: false,
     selectedDay: new XDate(true)
@@ -92,6 +112,7 @@ class ReservationList extends Component<ReservationListProps, State> {
   private scrollOver: boolean;
   private list: React.RefObject<FlatList> = React.createRef();
 
+  private viewabilityConfig: any;
 
   constructor(props: ReservationListProps) {
     super(props);
@@ -105,6 +126,10 @@ class ReservationList extends Component<ReservationListProps, State> {
     this.heights = [];
     this.selectedDay = props.selectedDay;
     this.scrollOver = true;
+
+    // this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
+    this.viewabilityConfig = {viewAreaCoveragePercentThreshold:
+          this.props.viewAreaCoveragePercentThreshold ? this.props.viewAreaCoveragePercentThreshold : 50};
   }
 
   componentDidMount() {
@@ -130,7 +155,7 @@ class ReservationList extends Component<ReservationListProps, State> {
   updateReservations(props: ReservationListProps) {
     const {selectedDay} = props;
     const reservations = this.getReservations(props);
-    
+
     if (this.list && !sameDate(selectedDay, this.selectedDay)) {
       let scrollPosition = 0;
       for (let i = 0; i < reservations.scrollPosition; i++) {
@@ -147,7 +172,7 @@ class ReservationList extends Component<ReservationListProps, State> {
   getReservationsForDay(iterator: XDate, props: ReservationListProps) {
     const day = iterator.clone();
     const res = props.items?.[toMarkingFormat(day)];
-    
+
     if (res && res.length) {
       return res.map((reservation: AgendaEntry, i: number) => {
         return {
@@ -168,7 +193,7 @@ class ReservationList extends Component<ReservationListProps, State> {
 
   getReservations(props: ReservationListProps) {
     const {selectedDay, showOnlySelectedDayItems} = props;
-    
+
     if (!props.items || !selectedDay) {
       return {reservations: [], scrollPosition: 0};
     }
@@ -256,7 +281,13 @@ class ReservationList extends Component<ReservationListProps, State> {
 
     return (
       <View onLayout={this.onRowLayoutChange.bind(this, index)}>
-        <Reservation {...reservationProps} item={item.reservation} date={item.date}/>
+        <Reservation {...reservationProps}
+                     item={item.reservation}
+                     date={item.date}
+                     renderItemHeader={this.props.renderItemHeader}
+                     shouldRenderItemHeader={this.props.shouldRenderItemHeader}
+                     extraData={this.props.flatListExtraData}
+        />
       </View>
     );
   };
@@ -265,9 +296,15 @@ class ReservationList extends Component<ReservationListProps, State> {
     return this.props.reservationsKeyExtractor?.(item, index) || `${item?.reservation?.day}${index}`;
   }
 
+  onViewableItemsChanged(info: any) {
+    if (this.props.onViewableItemsChanged) {
+      this.props.onViewableItemsChanged(info);
+    }
+  }
+
   render() {
     const {items, selectedDay, theme, style} = this.props;
-    
+
     if (!items || selectedDay && !items[toMarkingFormat(selectedDay)]) {
       if (isFunction(this.props.renderEmptyData)) {
         return this.props.renderEmptyData?.();
@@ -294,6 +331,10 @@ class ReservationList extends Component<ReservationListProps, State> {
         onScrollEndDrag={this.props.onScrollEndDrag}
         onMomentumScrollBegin={this.props.onMomentumScrollBegin}
         onMomentumScrollEnd={this.props.onMomentumScrollEnd}
+
+        onViewableItemsChanged={this.onViewableItemsChanged.bind(this)}
+        viewabilityConfig={this.viewabilityConfig}
+        extraData={this.props.flatListExtraData ? this.props.flatListExtraData : {}}
       />
     );
   }

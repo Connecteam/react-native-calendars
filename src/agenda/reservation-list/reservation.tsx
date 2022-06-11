@@ -23,9 +23,14 @@ export interface ReservationProps {
   /** specify how each date should be rendered. date can be undefined if the item is not first in that day */
   renderDay?: (date?: XDate, item?: AgendaEntry) => React.Component | JSX.Element;
   /** specify how each item should be rendered in agenda */
-  renderItem?: (reservation: AgendaEntry, isFirst: boolean) => React.Component | JSX.Element;
+  renderItem?: (reservation: AgendaEntry, isFirst: boolean, date?: XDate) => React.Component | JSX.Element;
   /** specify how empty date content with no items should be rendered */
   renderEmptyDate?: (date?: XDate) => React.Component | JSX.Element;
+
+  renderItemHeader?: (item: any, date: XDate) => JSX.Element;
+  shouldRenderItemHeader?: (item: any, isFirstItem: boolean, date: XDate) => boolean;
+
+  flatListExtraData?: any;
 }
 
 class Reservation extends Component<ReservationProps> {
@@ -38,7 +43,11 @@ class Reservation extends Component<ReservationProps> {
     rowHasChanged: PropTypes.func,
     renderDay: PropTypes.func,
     renderItem: PropTypes.func,
-    renderEmptyDate: PropTypes.func
+    renderEmptyDate: PropTypes.func,
+
+    renderItemHeader: PropTypes.func,
+    shouldRenderItemHeader: PropTypes.func,
+    flatListExtraData: PropTypes.object
   };
 
   style;
@@ -54,7 +63,7 @@ class Reservation extends Component<ReservationProps> {
     const d2 = nextProps.date;
     const r1 = this.props.item;
     const r2 = nextProps.item;
-    
+
     let changed = true;
     if (!d1 && !d2) {
       changed = false;
@@ -100,15 +109,31 @@ class Reservation extends Component<ReservationProps> {
 
   render() {
     const {item, date} = this.props;
-    
+    const firstItem = !!date;
+
     let content;
     if (item) {
       const firstItem = date ? true : false;
       if (isFunction(this.props.renderItem)) {
-        content = this.props.renderItem(item, firstItem);
+        content = this.props.renderItem(item, firstItem, date);
       }
     } else if (isFunction(this.props.renderEmptyDate)) {
       content = this.props.renderEmptyDate(date);
+    }
+
+    if (firstItem && this.props.shouldRenderItemHeader && this.props.renderItemHeader &&
+        this.props.shouldRenderItemHeader(item, firstItem, date)) {
+      return (
+          <View style={{flexDirection: 'column'}}>
+            {this.props.renderItemHeader(item, date)}
+            <View style={this.style.container}>
+              {this.renderDate(date, item)}
+              <View style={{flex:1}}>
+                {content}
+              </View>
+            </View>
+          </View>
+      );
     }
 
     return (

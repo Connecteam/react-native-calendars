@@ -49,6 +49,16 @@ export type AgendaProps = CalendarListProps & ReservationListProps & {
   hideKnob?: boolean;
   /** Whether the knob should always be visible (when hideKnob = false) */
   showClosingKnob?: boolean;
+
+  renderTopReservationsOverlay?: (data: XDate) => JSX.Element;
+
+  renderItemHeader?: (item: any, date: XDate) => JSX.Element;
+  shouldRenderItemHeader?: (item: any, isFirstItem: boolean, date: XDate) => boolean;
+
+  onViewableItemsChanged?: (info: any) => void;
+  viewAreaCoveragePercentThreshold?: number;
+
+  flatListExtraData?: any;
 }
 
 type State = {
@@ -81,7 +91,17 @@ export default class Agenda extends Component<AgendaProps, State> {
     renderKnob: PropTypes.func,
     selected: PropTypes.any, //TODO: Should be renamed 'selectedDay' and inherited from ReservationList
     hideKnob: PropTypes.bool,
-    showClosingKnob: PropTypes.bool
+    showClosingKnob: PropTypes.bool,
+
+    renderTopReservationsOverlay: PropTypes.func,
+
+    renderItemHeader: PropTypes.func,
+    shouldRenderItemHeader: PropTypes.func,
+
+    onViewableItemsChanged: PropTypes.func,
+    viewAreaCoveragePercentThreshold: PropTypes.number,
+
+    flatListExtraData: PropTypes.object
   };
 
   private style: {[key: string]: ViewStyle};
@@ -136,7 +156,7 @@ export default class Agenda extends Component<AgendaProps, State> {
 
   componentDidUpdate(prevProps: AgendaProps, prevState: State) {
     const newSelectedDate = this.getSelectedDate(this.props.selected);
-    
+
     if (!sameDate(newSelectedDate, prevState.selectedDay)) {
       const prevSelectedDate = this.getSelectedDate(prevProps.selected);
       if (!sameDate(newSelectedDate, prevSelectedDate)) {
@@ -183,7 +203,7 @@ export default class Agenda extends Component<AgendaProps, State> {
 
   enableCalendarScrolling(enable = true) {
     this.setState({calendarScrollable: enable});
-    
+
     this.props.onCalendarToggled?.(enable);
 
     // Enlarge calendarOffset here as a workaround on iOS to force repaint.
@@ -320,7 +340,7 @@ export default class Agenda extends Component<AgendaProps, State> {
   onDayChange = (day: XDate) => {
     const withAnimation = sameMonth(day, this.state.selectedDay);
     this.calendar?.current?.scrollToDay(day, this.calendarOffset(), withAnimation);
-    
+
     this.setState({selectedDay: day});
 
     this.props.onDayChange?.(xdateToData(day));
@@ -336,6 +356,12 @@ export default class Agenda extends Component<AgendaProps, State> {
         selectedDay={this.state.selectedDay}
         topDay={this.state.topDay}
         onDayChange={this.onDayChange}
+        renderTopReservationsOverlay={this.props.renderTopReservationsOverlay}
+        renderItemHeader={this.props.renderItemHeader}
+        shouldRenderItemHeader={this.props.shouldRenderItemHeader}
+        onViewableItemsChanged={this.props.onViewableItemsChanged}
+        viewAreaCoveragePercentThreshold={this.props.viewAreaCoveragePercentThreshold}
+        flatListExtraData={this.props.flatListExtraData}
       />
     );
   }
@@ -378,9 +404,9 @@ export default class Agenda extends Component<AgendaProps, State> {
 
   renderWeekDaysNames = () => {
     return (
-      <WeekDaysNames 
-        firstDay={this.props.firstDay} 
-        style={this.style.dayHeader} 
+      <WeekDaysNames
+        firstDay={this.props.firstDay}
+        style={this.style.dayHeader}
       />
     );
   };
