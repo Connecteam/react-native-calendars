@@ -127,7 +127,7 @@ class ReservationList extends Component<ReservationListProps, State> {
     this.selectedDay = props.selectedDay;
     this.scrollOver = true;
 
-    // this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
+    this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
     this.viewabilityConfig = {viewAreaCoveragePercentThreshold:
           this.props.viewAreaCoveragePercentThreshold ? this.props.viewAreaCoveragePercentThreshold : 50};
   }
@@ -332,7 +332,7 @@ class ReservationList extends Component<ReservationListProps, State> {
         onMomentumScrollBegin={this.props.onMomentumScrollBegin}
         onMomentumScrollEnd={this.props.onMomentumScrollEnd}
 
-        onViewableItemsChanged={this.onViewableItemsChanged.bind(this)}
+        onViewableItemsChanged={this.onViewableItemsChanged}
         viewabilityConfig={this.viewabilityConfig}
         extraData={this.props.flatListExtraData ? this.props.flatListExtraData : {}}
       />
