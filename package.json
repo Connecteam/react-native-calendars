@@ -39,7 +39,7 @@
     "jasmine": "^2.5.2",
     "mocha": "^7.1.0",
     "react": "16.11.0",
-    "react-native": "0.62.2",
+    "react-native": "0.69.12",
     "react-native-navigation": "^6.7.1",
     "semver": "5.x.x",
     "shell-utils": "1.x.x"
